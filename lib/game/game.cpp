@@ -7,6 +7,8 @@
 #include <SDL2/SDL_log.h>
 #include <SDL2/SDL_mouse.h>
 #include <algorithm>
+#include <string>
+#include <limits>
 
 static SDL_Color current_start_color = platform::font::color::BG;
 static SDL_Color current_quit_color = platform::font::color::BG;
@@ -83,6 +85,17 @@ platform::game_state::MENU_ACTION Game::start_menu(const mouse_pos pos) const {
 
     return platform::game_state::TITLE;
 }
+
+platform::game_state::MENU_ACTION Game::game_loop(const mouse_pos pos, SDL_Window *window,
+                                                  const double elapsed_time) const {
+    char temp[sizeof(std::to_string(DBL_MAX))];
+
+    get_time_stemp(elapsed_time, temp);
+
+    const std::string title = std::string(platform::window::TITLE) + " " + temp;
+    SDL_SetWindowTitle(window, title.c_str());
+}
+
 
 void Game::draw_rect(const SDL_FRect rect, const SDL_Color color) const {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
@@ -243,5 +256,26 @@ void Game::set_cursor(const bool is_hovering) const {
     } else {
         SDL_Cursor *cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
         SDL_SetCursor(cursor);
+    }
+}
+
+void Game::get_time_stemp(const double elapsed_time, char *time_stamp) const {
+    if (elapsed_time < 60) {
+        const int seconds = static_cast<const int>(elapsed_time);
+        const int milliseconds = static_cast<const int>((elapsed_time - seconds) * 100.0);
+
+        sprintf(time_stamp, "(%d:%02d) seconds", seconds, milliseconds);
+    } else if (elapsed_time < 3600) {
+        const int total = static_cast<const int>(elapsed_time);
+        const int minutes = total / 60;
+        const int seconds = total % 60;
+
+        sprintf(time_stamp, "(%d:%02d) minutes", minutes, seconds);
+    } else {
+        const int total = static_cast<const int>(elapsed_time);
+        const int hours = total / 3600;
+        const int minutes = (total % 3600) / 60;
+
+        sprintf(time_stamp, "(%d:%02d) hours", hours, minutes);
     }
 }

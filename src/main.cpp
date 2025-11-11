@@ -42,11 +42,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_GL_SetSwapInterval(1);
+
     SDL_Event event;
 
     bool is_running = true;
 
+    uint32_t start_timer = SDL_GetTicks();
     while (is_running) {
         for (int i = 0; i < platform::input::BUTTON_COUNT; i++) {
             input.buttons[i].changed = false;
@@ -110,8 +113,13 @@ int main(int argc, char *argv[]) {
         }
 
         if (is_playing && !is_title_screen) {
-            SDL_Log("Playing");
-        } else if (!is_playing && !is_title_screen) {
+            const uint32_t current_time = SDL_GetTicks();
+            const double elapsed_time = (current_time - start_timer) / 1000.0; // decided by 1000 to get seconds
+
+            switch (game.game_loop({mouse_x, mouse_y}, window, elapsed_time)) {
+                case platform::game_state::PLAYING:
+                default: break;
+            }
         }
 
         SDL_RenderPresent(renderer);

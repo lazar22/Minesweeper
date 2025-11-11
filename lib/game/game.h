@@ -42,6 +42,9 @@ public
 :
     [[nodiscard]] platform::game_state::MENU_ACTION start_menu(const mouse_pos pos) const;
 
+    [[nodiscard]] platform::game_state::MENU_ACTION game_loop(const mouse_pos pos, SDL_Window *window,
+                                                              double elapsed_time) const;
+
     void set_bg_color(SDL_Color color) const;
 
 private
@@ -59,6 +62,8 @@ private
     bool check_hover(SDL_FRect rect, const mouse_pos pos) const;
 
     void set_cursor(bool is_hovering) const;
+
+    void get_time_stemp(double elapsed_time, char *time_stamp) const;
 };
 
 #endif //GAME_H
