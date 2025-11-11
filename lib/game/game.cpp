@@ -8,10 +8,18 @@
 #include <SDL2/SDL_mouse.h>
 #include <algorithm>
 
-void Game::start_menu(const mouse_pos pos) const {
+static SDL_Color current_start_color = platform::font::color::BG;
+static SDL_Color current_quit_color = platform::font::color::BG;
+
+static SDL_FRect current_start_rect;
+static SDL_FRect current_quit_rect;
+
+platform::game_state::MENU_ACTION Game::start_menu(const mouse_pos pos) const {
     constexpr int btn_h = {100};
     constexpr int btn_w = {200};
     constexpr int btn_offset = {20};
+
+    constexpr int border_r = {10};
 
     constexpr int middle_x = (platform::window::WIDTH - btn_w) / 2;
     constexpr int middle_y = (platform::window::HEIGHT - btn_h) / 2;
@@ -19,8 +27,8 @@ void Game::start_menu(const mouse_pos pos) const {
     constexpr SDL_FRect start_btn = {middle_x, middle_y, btn_w, btn_h};
     constexpr SDL_FRect quit_btn = {middle_x, middle_y + btn_offset + btn_h, btn_w, btn_h};
 
-    draw_rounded_rect(start_btn, 10, platform::font::color::BG);
-    draw_rounded_rect(quit_btn, 10, platform::font::color::BG);
+    draw_rounded_rect(start_btn, border_r, current_start_color);
+    draw_rounded_rect(quit_btn, border_r, current_quit_color);
 
     draw_txt({
                  static_cast<int>(start_btn.x), static_cast<int>(start_btn.y),
@@ -36,11 +44,44 @@ void Game::start_menu(const mouse_pos pos) const {
              platform::font::color::MAIN,
              "Quit");
 
-    if (check_hover(start_btn, pos) || check_hover(quit_btn, pos)) {
+    const bool is_start_hover = check_hover(start_btn, pos);
+    const bool is_quit_hover = check_hover(quit_btn, pos);
+
+    if (is_start_hover) {
+        current_start_color = platform::font::color::BG_HOVER;
+
+        current_start_rect.w = start_btn.w + 10;
+        current_start_rect.h = start_btn.h + 10;
+
+        if (IS_PRESSED(platform::input::MOUSE_LEFT)) {
+            return platform::game_state::PLAYING;
+        }
+    }
+
+    if (is_quit_hover) {
+        current_quit_color = platform::font::color::BG_HOVER;
+
+        current_quit_rect.w = quit_btn.w + 10;
+        current_quit_rect.h = quit_btn.h + 10;
+
+        if (IS_PRESSED(platform::input::MOUSE_LEFT)) {
+            return platform::game_state::QUIT;
+        }
+    }
+
+    if (is_start_hover || is_quit_hover) {
         set_cursor(true);
     } else {
         set_cursor(false);
+
+        current_start_color = platform::font::color::BG;
+        current_quit_color = platform::font::color::BG;
+
+        current_start_rect = start_btn;
+        current_quit_rect = quit_btn;
     }
+
+    return platform::game_state::TITLE;
 }
 
 void Game::draw_rect(const SDL_FRect rect, const SDL_Color color) const {
@@ -48,7 +89,7 @@ void Game::draw_rect(const SDL_FRect rect, const SDL_Color color) const {
     SDL_RenderFillRectF(renderer, &rect);
 }
 
-void Game::draw_txt(SDL_Rect pos, const SDL_Color color, const char *txt) const {
+void Game::draw_txt(const SDL_Rect pos, const SDL_Color color, const char *txt) const {
     SDL_Surface *surface_msg = TTF_RenderText_Solid(font, txt, color);
     SDL_Texture *text_texture = SDL_CreateTextureFromSurface(renderer, surface_msg);
     SDL_RenderCopy(renderer, text_texture, nullptr, &pos);

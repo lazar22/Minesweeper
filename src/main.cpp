@@ -8,8 +8,13 @@
 
 #include "game.h"
 
+static platform::input::input_t input;
+
 static int mouse_x, mouse_y;
 static SDL_DisplayMode window_size;
+
+static bool is_title_screen = true;
+static bool is_playing = false;
 
 int main(int argc, char *argv[]) {
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -43,6 +48,10 @@ int main(int argc, char *argv[]) {
     bool is_running = true;
 
     while (is_running) {
+        for (int i = 0; i < platform::input::BUTTON_COUNT; i++) {
+            input.buttons[i].changed = false;
+        }
+
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 is_running = false;
@@ -62,17 +71,48 @@ int main(int argc, char *argv[]) {
                     SDL_GetMouseState(&mouse_x, &mouse_y);
                     break;
                 }
+                case SDL_MOUSEBUTTONDOWN:
+                case SDL_MOUSEBUTTONUP: {
+                    const bool is_down = (event.type == SDL_MOUSEBUTTONDOWN);
+
+                    switch (event.button.button) {
+                        READ_KEY(platform::input::MOUSE_LEFT, SDL_BUTTON_LEFT);
+                        default: break;
+                    }
+                }
 
                 default: break;
             }
         }
 
-        Game game{renderer, font};
+        platform::game_state::MENU_ACTION action{platform::game_state::TITLE};
+
+        Game game{renderer, input, font};
         game.set_bg_color(platform::window::COLOR);
 
         SDL_RenderClear(renderer);
 
-        game.start_menu({mouse_x, mouse_y});
+        if (is_title_screen) {
+            switch (game.start_menu({mouse_x, mouse_y})) {
+                case platform::game_state::PLAYING: {
+                    is_playing = true;
+                    is_title_screen = false;
+                    SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
+                    break;
+                }
+                case platform::game_state::QUIT: {
+                    is_running = false;
+                    break;
+                }
+
+                default: break;
+            }
+        }
+
+        if (is_playing && !is_title_screen) {
+            SDL_Log("Playing");
+        } else if (!is_playing && !is_title_screen) {
+        }
 
         SDL_RenderPresent(renderer);
     }
@@ -82,6 +122,7 @@ int main(int argc, char *argv[]) {
     TTF_CloseFont(font);
 
     TTF_Quit();
+
     SDL_Quit();
 
     return 0;

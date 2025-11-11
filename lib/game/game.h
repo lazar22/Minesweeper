@@ -11,6 +11,10 @@
 
 #include <platform.h>
 
+#define IS_DOWN(button) input.buttons[button].is_down
+#define IS_PRESSED(button) (input.buttons[button].is_down && input.buttons[button].changed)
+#define IS_RELEASED(button) (!input.buttons[button].is_down && input.buttons[button].changed)
+
 typedef struct CIRCLE {
     float center_x;
     float center_y;
@@ -20,6 +24,7 @@ typedef struct CIRCLE {
 class Game {
     SDL_Renderer *renderer;
     TTF_Font *font;
+    platform::input::input_t input;
 
     typedef struct MOUSE_POS {
         int x;
@@ -27,14 +32,15 @@ class Game {
     } mouse_pos;
 
 public:
-    Game(SDL_Renderer *_renderer, TTF_Font *_font) : renderer{_renderer}, font{_font} {
+    Game(SDL_Renderer *_renderer, const platform::input::input_t _input, TTF_Font *_font)
+        : renderer{_renderer}, font{_font}, input{_input} {
     };
 
     ~Game() = default;
 
 public
 :
-    void start_menu(const mouse_pos pos) const;
+    [[nodiscard]] platform::game_state::MENU_ACTION start_menu(const mouse_pos pos) const;
 
     void set_bg_color(SDL_Color color) const;
 
