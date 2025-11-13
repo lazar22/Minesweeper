@@ -13,8 +13,7 @@ static platform::input::input_t input;
 static int mouse_x, mouse_y;
 static SDL_DisplayMode window_size;
 
-static bool is_title_screen = true;
-static bool is_playing = false;
+static uint8_t current_state = platform::game_state::TITLE;
 
 int main(int argc, char *argv[]) {
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -96,11 +95,10 @@ int main(int argc, char *argv[]) {
 
         SDL_RenderClear(renderer);
 
-        if (is_title_screen) {
+        if (current_state == platform::game_state::TITLE) {
             switch (game.start_menu({mouse_x, mouse_y})) {
                 case platform::game_state::PLAYING: {
-                    is_playing = true;
-                    is_title_screen = false;
+                    current_state = platform::game_state::PLAYING;
                     SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
                     break;
                 }
@@ -113,7 +111,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        if (is_playing && !is_title_screen) {
+        if (current_state == platform::game_state::PLAYING) {
             const uint32_t current_time = SDL_GetTicks();
             const double elapsed_time = (current_time - start_timer) / 1000.0; // decided by 1000 to get seconds
 
@@ -122,7 +120,7 @@ int main(int argc, char *argv[]) {
                     break;
                 }
                 case platform::game_state::TITLE: {
-                    is_title_screen = true;
+                    current_state = platform::game_state::TITLE;
                     SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
                     break;
                 }
