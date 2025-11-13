@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
                                           platform::window::WIDTH, platform::window::HEIGHT,
                                           SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
-    const char *fontPath = "assets/font/ChrustyRock-ORLA.ttf";
+    const char *fontPath = "assets/font/04b_25__.ttf";
     TTF_Font *font = TTF_OpenFont(fontPath, platform::font::TITLE_SIZE);
     if (!font) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_OpenFont('%s') failed: %s", fontPath, TTF_GetError());
@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
 
                     switch (event.button.button) {
                         READ_KEY(platform::input::MOUSE_LEFT, SDL_BUTTON_LEFT);
+                        READ_KEY(platform::input::MOUSE_RIGHT, SDL_BUTTON_RIGHT);
                         default: break;
                     }
                 }
@@ -116,8 +117,19 @@ int main(int argc, char *argv[]) {
             const uint32_t current_time = SDL_GetTicks();
             const double elapsed_time = (current_time - start_timer) / 1000.0; // decided by 1000 to get seconds
 
-            switch (game.game_loop({mouse_x, mouse_y}, window, elapsed_time)) {
-                case platform::game_state::PLAYING:
+            switch (game.game_loop({mouse_x, mouse_y}, window, elapsed_time, {8, 8, 10})) {
+                case platform::game_state::PLAYING: {
+                    break;
+                }
+                case platform::game_state::TITLE: {
+                    is_title_screen = true;
+                    SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
+                    break;
+                }
+                case platform::game_state::QUIT: {
+                    is_running = false;
+                    break;
+                }
                 default: break;
             }
         }

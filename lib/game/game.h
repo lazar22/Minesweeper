@@ -21,6 +21,15 @@ typedef struct CIRCLE {
     float r;
 } circle_t;
 
+typedef struct BLOCK_STATS {
+    SDL_FRect rect;
+    mutable SDL_Color bg;
+    unsigned int mines_around{0};
+    bool is_mine{false};
+    mutable bool is_flagged{false};
+    mutable bool is_revealed{false};
+} block_stats_t;
+
 class Game {
     SDL_Renderer *renderer;
     TTF_Font *font;
@@ -43,7 +52,8 @@ public
     [[nodiscard]] platform::game_state::MENU_ACTION start_menu(const mouse_pos pos) const;
 
     [[nodiscard]] platform::game_state::MENU_ACTION game_loop(const mouse_pos pos, SDL_Window *window,
-                                                              double elapsed_time) const;
+                                                              double elapsed_time,
+                                                              platform::game::board::board_settings_t board_size);
 
     void set_bg_color(SDL_Color color) const;
 
@@ -63,7 +73,13 @@ private
 
     void set_cursor(bool is_hovering) const;
 
-    void get_time_stemp(double elapsed_time, char *time_stamp) const;
+    void get_time_stamp(double elapsed_time, char *time_stamp) const;
+
+    void board_init(platform::game::board::board_settings_t board_size) const;
+
+    void generate_grid() const;
+
+    bool grid_mouse_action(const mouse_pos pos);
 };
 
 #endif //GAME_H

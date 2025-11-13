@@ -16,6 +16,13 @@ static SDL_Color current_quit_color = platform::font::color::BG;
 static SDL_FRect current_start_rect;
 static SDL_FRect current_quit_rect;
 
+static float grid_w;
+static float grid_h;
+
+static std::vector<std::vector<block_stats_t> > board;
+
+static bool init_generation{false};
+
 platform::game_state::MENU_ACTION Game::start_menu(const mouse_pos pos) const {
     constexpr int btn_h = {100};
     constexpr int btn_w = {200};
@@ -56,6 +63,7 @@ platform::game_state::MENU_ACTION Game::start_menu(const mouse_pos pos) const {
         current_start_rect.h = start_btn.h + 10;
 
         if (IS_PRESSED(platform::input::MOUSE_LEFT)) {
+            init_generation = true;
             return platform::game_state::PLAYING;
         }
     }
@@ -87,13 +95,26 @@ platform::game_state::MENU_ACTION Game::start_menu(const mouse_pos pos) const {
 }
 
 platform::game_state::MENU_ACTION Game::game_loop(const mouse_pos pos, SDL_Window *window,
-                                                  const double elapsed_time) const {
+                                                  const double elapsed_time,
+                                                  const platform::game::board::board_settings_t board_size) {
     char temp[sizeof(std::to_string(DBL_MAX))];
 
-    get_time_stemp(elapsed_time, temp);
+    get_time_stamp(elapsed_time, temp);
+
+    if (init_generation) {
+        board_init(board_size);
+        init_generation = false;
+    }
+
+    generate_grid();
+    if (grid_mouse_action(pos)) {
+        return platform::game_state::TITLE;
+    }
 
     const std::string title = std::string(platform::window::TITLE) + " " + temp;
     SDL_SetWindowTitle(window, title.c_str());
+
+    return platform::game_state::PLAYING;
 }
 
 
@@ -259,7 +280,7 @@ void Game::set_cursor(const bool is_hovering) const {
     }
 }
 
-void Game::get_time_stemp(const double elapsed_time, char *time_stamp) const {
+void Game::get_time_stamp(const double elapsed_time, char *time_stamp) const {
     if (elapsed_time < 60) {
         const int seconds = static_cast<const int>(elapsed_time);
         const int milliseconds = static_cast<const int>((elapsed_time - seconds) * 100.0);
@@ -279,3 +300,149 @@ void Game::get_time_stemp(const double elapsed_time, char *time_stamp) const {
         sprintf(time_stamp, "(%d:%02d) hours", hours, minutes);
     }
 }
+
+void Game::board_init(const platform::game::board::board_settings_t board_size) const {
+    const int cols = board_size.w;
+    const int rows = board_size.h;
+
+    board.assign(rows, std::vector<block_stats_t>(cols));
+
+    constexpr float cell = platform::game::block::SIZE;
+    constexpr float gap = platform::game::block::OFFSET;
+
+    grid_w = static_cast<float>(cols) * cell + static_cast<float>(cols - 1) * gap;
+    grid_h = static_cast<float>(rows) * cell + static_cast<float>(rows - 1) * gap;
+
+    const float origin_x = (platform::window::WIDTH - grid_w) * 0.5f;
+    const float origin_y = (platform::window::HEIGHT - grid_h) * 0.5f;
+
+    // Generate the table
+    for (int y = 0; y < rows; ++y) {
+        for (int x = 0; x < cols; ++x) {
+            const SDL_FRect rect = {
+                origin_x + x * (cell + gap),
+                origin_y + y * (cell + gap),
+                cell,
+                cell
+            };
+
+            board[y][x].rect = rect;
+            board[y][x].bg = platform::game::block::color::BG;
+            board[y][x].mines_around = 0;
+            board[y][x].is_revealed = false;
+            board[y][x].is_flagged = false;
+            board[y][x].is_mine = false;
+        }
+    }
+
+    int mines = board_size.mines;
+    srand(static_cast<unsigned int>(time(nullptr)));
+
+    // Generate Mines
+    while (mines > 0) {
+        const int x = rand() % cols;
+        const int y = rand() % rows;
+
+        if (board[y][x].is_mine != true) {
+            board[y][x].is_mine = true;
+            --mines;
+        }
+    }
+
+    // Generate Mine Count Numbers
+    for (int y = 0; y < rows; ++y) {
+        for (int x = 0; x < cols; ++x) {
+            if (board[y][x].is_mine) continue;
+
+            int count = 0;
+            for (int i = -1; i <= 1; ++i) {
+                for (int j = -1; j <= 1; ++j) {
+                    if (i == 0 && j == 0) continue;
+
+                    if (x + i >= 0 && x + i < cols && y + j >= 0 && y + j < rows && board[y + j][x + i].is_mine) {
+                        ++count;
+                    }
+
+                    board[y][x].mines_around = count;
+                }
+            }
+        }
+    }
+}
+
+
+void Game::generate_grid() const {
+    const int rows = static_cast<int>(board.size());
+    const int cols = static_cast<int>(board[0].size());
+
+    for (int y = 0; y < rows; ++y) {
+        for (int x = 0; x < cols; ++x) {
+            const auto &cell = board[y][x];
+
+            draw_rect(cell.rect, cell.bg);
+
+            if (cell.is_revealed) {
+                if (cell.is_mine) {
+                    draw_rounded_rect(cell.rect, 20.0f, {0, 0, 0, 255});
+                } else {
+                    if (cell.mines_around > 0) {
+                        const uint8_t radiant = cell.mines_around * 30;
+                        const SDL_Color draw_color = {
+                            static_cast<uint8_t>(41 + radiant),
+                            static_cast<uint8_t>(184 + radiant),
+                            static_cast<uint8_t>(255 + radiant),
+                            255
+                        };
+
+                        const SDL_Rect txt_pos = {
+                            static_cast<int>(cell.rect.x + cell.rect.w / 2 - 5),
+                            static_cast<int>(cell.rect.y + cell.rect.h / 2 - 7),
+                            static_cast<int>(cell.rect.w / 2),
+                            static_cast<int>(cell.rect.h / 2)
+                        };
+
+                        std::string txt = std::to_string(cell.mines_around);
+
+                        draw_txt(txt_pos,
+                                 draw_color,
+                                 txt.c_str());
+                    }
+                }
+            }
+
+            if (cell.is_flagged) {
+                draw_circle({cell.rect.x + cell.rect.w / 2, cell.rect.y + cell.rect.h / 2, 10}, {255, 0, 0, 255});
+            }
+        }
+    }
+}
+
+bool Game::grid_mouse_action(const mouse_pos pos) {
+    const int rows = static_cast<int>(board.size());
+    const int cols = static_cast<int>(board[0].size());
+
+    for (int y = 0; y < rows; ++y) {
+        for (int x = 0; x < cols; ++x) {
+            const auto &cell = board[y][x];
+
+            if (check_hover(cell.rect, pos)) {
+                if (!cell.is_revealed && !cell.is_flagged && IS_PRESSED(platform::input::MOUSE_LEFT)) {
+                    cell.is_revealed = true;
+                    cell.bg = platform::game::block::color::REVELED_BG;
+
+                    if (cell.is_mine) {
+                        cell.bg = platform::game::block::color::LOST_BG;
+                        return true;
+                    }
+                }
+                if (!cell.is_revealed && IS_PRESSED(platform::input::MOUSE_RIGHT)) {
+                    cell.is_flagged = !cell.is_flagged;
+                }
+            } else {
+            }
+        }
+    }
+
+    return false;
+}
+

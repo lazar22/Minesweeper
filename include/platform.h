@@ -29,6 +29,27 @@ namespace platform {
         };
     }
 
+    namespace game {
+        namespace board {
+            typedef struct BOARD_SETTINGS {
+                uint8_t w;
+                uint8_t h;
+                uint8_t mines;
+            } board_settings_t;
+        }
+
+        namespace block {
+            namespace color {
+                constexpr SDL_Color BG{148, 148, 148, 255};
+                constexpr SDL_Color REVELED_BG{205, 211, 213, 255};
+                constexpr SDL_Color LOST_BG{196, 41, 41, 255};
+            }
+
+            constexpr int SIZE{50};
+            constexpr int OFFSET{2};
+        }
+    }
+
     namespace input {
         typedef struct BUTTON_STATE {
             bool is_down;
@@ -45,6 +66,7 @@ namespace platform {
             D,
 
             MOUSE_LEFT,
+            MOUSE_RIGHT,
 
             BUTTON_COUNT,
         };
