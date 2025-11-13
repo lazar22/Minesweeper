@@ -21,6 +21,7 @@ static float grid_h;
 
 static std::vector<std::vector<block_stats_t> > board;
 
+static bool ignore_left_click_until_release{false};
 static bool init_generation{false};
 
 platform::game_state::MENU_ACTION Game::start_menu(const mouse_pos pos) const {
@@ -64,6 +65,7 @@ platform::game_state::MENU_ACTION Game::start_menu(const mouse_pos pos) const {
 
         if (IS_PRESSED(platform::input::MOUSE_LEFT)) {
             init_generation = true;
+            ignore_left_click_until_release = true;
             return platform::game_state::PLAYING;
         }
     }
@@ -421,12 +423,21 @@ bool Game::grid_mouse_action(const mouse_pos pos) {
     const int rows = static_cast<int>(board.size());
     const int cols = static_cast<int>(board[0].size());
 
+    if (ignore_left_click_until_release) {
+        if (!IS_PRESSED(platform::input::MOUSE_LEFT)) {
+            ignore_left_click_until_release = false;
+        }
+    }
+
     for (int y = 0; y < rows; ++y) {
         for (int x = 0; x < cols; ++x) {
             const auto &cell = board[y][x];
 
             if (check_hover(cell.rect, pos)) {
-                if (!cell.is_revealed && !cell.is_flagged && IS_PRESSED(platform::input::MOUSE_LEFT)) {
+                if (!ignore_left_click_until_release &&
+                    !cell.is_revealed &&
+                    !cell.is_flagged
+                    && IS_PRESSED(platform::input::MOUSE_LEFT)) {
                     cell.is_revealed = true;
                     cell.bg = platform::game::block::color::REVELED_BG;
 

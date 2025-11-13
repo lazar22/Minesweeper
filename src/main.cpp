@@ -5,7 +5,6 @@
 #include <SDL2/SDL.h>
 
 #include <platform.h>
-
 #include "game.h"
 
 static platform::input::input_t input;
@@ -140,7 +139,6 @@ int main(int argc, char *argv[]) {
     TTF_CloseFont(font);
 
     TTF_Quit();
-
     SDL_Quit();
 
     return 0;
