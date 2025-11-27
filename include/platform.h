@@ -26,6 +26,7 @@ namespace platform {
             QUIT,
             PLAYING,
             PAUSED,
+            SCORE,
         };
     }
 

@@ -87,13 +87,14 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        platform::game_state::MENU_ACTION action{platform::game_state::TITLE};
+        // platform::game_state::MENU_ACTION action{platform::game_state::TITLE};
 
         Game game{renderer, input, font};
         game.set_bg_color(platform::window::COLOR);
 
         SDL_RenderClear(renderer);
 
+        // Title Screen
         if (current_state == platform::game_state::TITLE) {
             switch (game.start_menu({mouse_x, mouse_y})) {
                 case platform::game_state::PLAYING: {
@@ -110,6 +111,9 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        // TODO: Add pick board size screen
+
+        // In game screen
         if (current_state == platform::game_state::PLAYING) {
             const uint32_t current_time = SDL_GetTicks();
             const double elapsed_time = (current_time - start_timer) / 1000.0; // decided by 1000 to get seconds

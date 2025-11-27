@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <string>
 #include <limits>
+#include <queue>
 
 static SDL_Color current_start_color = platform::font::color::BG;
 static SDL_Color current_quit_color = platform::font::color::BG;
@@ -23,6 +24,8 @@ static std::vector<std::vector<block_stats_t> > board;
 
 static bool ignore_left_click_until_release{false};
 static bool init_generation{false};
+
+static int amount_of_mines{0};
 
 platform::game_state::MENU_ACTION Game::start_menu(const mouse_pos pos) const {
     constexpr int btn_h = {100};
@@ -109,12 +112,21 @@ platform::game_state::MENU_ACTION Game::game_loop(const mouse_pos pos, SDL_Windo
     }
 
     generate_grid();
+
+    // If true, you lost the game
     if (grid_mouse_action(pos)) {
+        // TODO: Add a wait before going to the title screen or have a more user friendly output that you lost the game
         return platform::game_state::TITLE;
     }
 
     const std::string title = std::string(platform::window::TITLE) + " " + temp;
     SDL_SetWindowTitle(window, title.c_str());
+
+    // If true, you won the game
+    if (check_win()) {
+        // TODO: check if the time is in the best of 10, and if it is return to the platform::game_state::SCORE
+        return platform::game_state::TITLE;
+    }
 
     return platform::game_state::PLAYING;
 }
@@ -338,6 +350,7 @@ void Game::board_init(const platform::game::board::board_settings_t board_size) 
     }
 
     int mines = board_size.mines;
+    amount_of_mines = mines;
     srand(static_cast<unsigned int>(time(nullptr)));
 
     // Generate Mines
@@ -445,6 +458,9 @@ bool Game::grid_mouse_action(const mouse_pos pos) {
                         cell.bg = platform::game::block::color::LOST_BG;
                         return true;
                     }
+
+                    // TODO: Do the same on the first tile unlock
+                    loop_around_tile(x, y);
                 }
                 if (!cell.is_revealed && IS_PRESSED(platform::input::MOUSE_RIGHT)) {
                     cell.is_flagged = !cell.is_flagged;
@@ -455,5 +471,76 @@ bool Game::grid_mouse_action(const mouse_pos pos) {
     }
 
     return false;
+}
+
+
+void Game::loop_around_tile(const int pos_x, const int pos_y) {
+    if (board.empty() || board[0].empty()) return;
+
+    const int rows = static_cast<int>(board.size());
+    const int cols = static_cast<int>(board[0].size());
+
+    auto in_bounds = [&](const int x, const int y) {
+        return x >= 0 && x < cols && y >= 0 && y < rows;
+    };
+
+    if (!in_bounds(pos_x, pos_y)) return;
+    if (board[pos_y][pos_x].is_mine) return;
+
+    const bool start_is_zero = (board[pos_y][pos_x].mines_around == 0);
+    if (!start_is_zero) {
+        return;
+    }
+
+    std::queue<std::pair<int, int> > q;
+
+    if (!board[pos_y][pos_x].is_revealed) {
+        board[pos_y][pos_x].is_revealed = true;
+        board[pos_y][pos_x].bg = platform::game::block::color::REVELED_BG;
+    }
+    q.emplace(pos_x, pos_y);
+
+    constexpr int directionCount = 8;
+    const int dx[directionCount] = {-1, 0, 1, -1, 1, -1, 0, 1};
+    const int dy[directionCount] = {-1, -1, -1, 0, 0, 1, 1, 1};
+
+    while (!q.empty()) {
+        auto [cx, cy] = q.front();
+        q.pop();
+
+        for (int i = 0; i < directionCount; ++i) {
+            const int nx = cx + dx[i];
+            const int ny = cy + dy[i];
+            if (!in_bounds(nx, ny)) continue;
+
+            auto &n_cell = board[ny][nx];
+            if (n_cell.is_mine || n_cell.is_flagged || n_cell.is_revealed) continue;
+
+            n_cell.is_revealed = true;
+            n_cell.bg = platform::game::block::color::REVELED_BG;
+
+            if (n_cell.mines_around == 0) {
+                q.emplace(nx, ny);
+            }
+        }
+    }
+}
+
+
+bool Game::check_win() const {
+    // TODO: Fix win Check
+    const int rows = static_cast<int>(board.size());
+    const int cols = static_cast<int>(board[0].size());
+
+    int mines_left = amount_of_mines;
+    for (int y = 0; y < rows; ++y) {
+        for (int x = 0; x < cols; ++x) {
+            if (board[y][x].is_mine && board[y][x].is_revealed) {
+                --mines_left;
+            }
+        }
+    }
+
+    return mines_left == 0;
 }
 

@@ -80,6 +80,10 @@ private
     void generate_grid() const;
 
     bool grid_mouse_action(const mouse_pos pos);
+
+    static void loop_around_tile(const int pos_x, const int pos_y);
+
+    bool check_win() const;
 };
 
 #endif //GAME_H
