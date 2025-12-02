@@ -77,13 +77,17 @@ private
 
     void board_init(platform::game::board::board_settings_t board_size) const;
 
+    void generate_tiles(int safe_x, int safe_y) const;
+
     void generate_grid() const;
 
-    bool grid_mouse_action(const mouse_pos pos);
+    bool grid_mouse_action(const mouse_pos pos) const;
 
-    static void loop_around_tile(const int pos_x, const int pos_y);
+    void loop_around_tile(const int pos_x, const int pos_y) const;
 
     bool check_win() const;
+
+    bool in_bounds(const int x, const int y) const;
 };
 
 #endif //GAME_H
