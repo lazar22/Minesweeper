@@ -9,18 +9,13 @@
 #include <SDL2/SDL_rect.h>
 #include <SDL_ttf.h>
 
-#include <platform.h>
 #include <score_manager.h>
+#include <platform.h>
+#include <renderer.h>
 
 #define IS_DOWN(button) input.buttons[button].is_down
 #define IS_PRESSED(button) (input.buttons[button].is_down && input.buttons[button].changed)
 #define IS_RELEASED(button) (!input.buttons[button].is_down && input.buttons[button].changed)
-
-typedef struct CIRCLE {
-    float center_x;
-    float center_y;
-    float r;
-} circle_t;
 
 typedef struct BLOCK_STATS {
     SDL_FRect rect;
@@ -36,6 +31,7 @@ class Game {
     TTF_Font *font;
     ScoreManager *score_manager;
     platform::input::input_t input;
+    Renderer *renderer_utils;
 
     typedef struct MOUSE_POS {
         int x;
@@ -46,6 +42,7 @@ public:
     Game(SDL_Renderer *_renderer, const platform::input::input_t _input, TTF_Font *_font)
         : renderer{_renderer}, font{_font}, input{_input} {
         score_manager = new ScoreManager{platform::file::NAME};
+        renderer_utils = new Renderer{renderer, font};
     };
 
     ~Game() = default;
@@ -64,18 +61,7 @@ public
 
     void set_bg_color(SDL_Color color) const;
 
-private
-:
-    void draw_rect(SDL_FRect rect, SDL_Color color) const;
-
-    void draw_txt(SDL_Rect pos, SDL_Color color, const char *txt) const;
-
-    void draw_circle(circle_t circle, SDL_Color color) const;
-
-    void draw_filled_circle(circle_t circle, SDL_Color color) const;
-
-    void draw_rounded_rect(SDL_FRect rect, float r, SDL_Color color) const;
-
+private:
     bool check_hover(SDL_FRect rect, const mouse_pos pos) const;
 
     void set_cursor(bool is_hovering) const;

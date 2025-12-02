@@ -9,6 +9,7 @@ add_executable(minesweeper
         src/main.cpp
         lib/game/game.cpp
         lib/score_manager/score_manager.cpp
+        lib/renderer/renderer.cpp
 )
 
 target_include_directories(minesweeper PRIVATE
@@ -17,6 +18,7 @@ target_include_directories(minesweeper PRIVATE
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/lib/game
         ${CMAKE_SOURCE_DIR}/lib/score_manager
+        ${CMAKE_SOURCE_DIR}/lib/renderer
 )
 
 target_link_libraries(minesweeper PRIVATE

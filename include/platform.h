@@ -18,6 +18,13 @@ namespace platform {
         static constexpr int HEIGHT{600};
 
         static constexpr SDL_Color COLOR{34, 12, 16, 255};
+
+        namespace score {
+            static auto TITLE{"Score Board"};
+
+            constexpr int WIDTH{520};
+            constexpr int HEIGHT{360};
+        }
     }
 
     namespace organization {

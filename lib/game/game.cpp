@@ -42,24 +42,24 @@ platform::game_state::MENU_ACTION Game::start_menu(SDL_Window *window, const mou
     constexpr SDL_FRect start_btn = {middle_x, middle_y, btn_w, btn_h};
     constexpr SDL_FRect quit_btn = {middle_x, middle_y + btn_offset + btn_h, btn_w, btn_h};
 
-    draw_rounded_rect(start_btn, border_r, current_start_color);
-    draw_rounded_rect(quit_btn, border_r, current_quit_color);
+    renderer_utils->draw_rounded_rect(start_btn, border_r, current_start_color);
+    renderer_utils->draw_rounded_rect(quit_btn, border_r, current_quit_color);
 
     SDL_SetWindowTitle(window, platform::window::TITLE);
 
-    draw_txt({
-                 static_cast<int>(start_btn.x), static_cast<int>(start_btn.y),
-                 static_cast<int>(start_btn.w), static_cast<int>(start_btn.h)
-             },
-             platform::font::color::MAIN,
-             "Start");
+    renderer_utils->draw_txt({
+                                 static_cast<int>(start_btn.x), static_cast<int>(start_btn.y),
+                                 static_cast<int>(start_btn.w), static_cast<int>(start_btn.h)
+                             },
+                             platform::font::color::MAIN,
+                             "Start");
 
-    draw_txt({
-                 static_cast<int>(quit_btn.x), static_cast<int>(quit_btn.y),
-                 static_cast<int>(quit_btn.w), static_cast<int>(quit_btn.h)
-             },
-             platform::font::color::MAIN,
-             "Quit");
+    renderer_utils->draw_txt({
+                                 static_cast<int>(quit_btn.x), static_cast<int>(quit_btn.y),
+                                 static_cast<int>(quit_btn.w), static_cast<int>(quit_btn.h)
+                             },
+                             platform::font::color::MAIN,
+                             "Quit");
 
     const bool is_start_hover = check_hover(start_btn, pos);
     const bool is_quit_hover = check_hover(quit_btn, pos);
@@ -133,7 +133,9 @@ platform::game_state::MENU_ACTION Game::game_loop(const mouse_pos pos, SDL_Windo
         // TODO: check if the time is in the best of 10, and if it is return to the platform::game_state::SCORE
         SDL_Log("You won the game!");
         if (score_manager->is_for_the_list(elapsed_time)) {
-            score_manager->save_score(elapsed_time);
+            // Open leaderboard/name entry window on top of the game
+            const std::string name = score_manager->open_score_window(font);
+            score_manager->save_score(name, static_cast<float>(elapsed_time));
         }
         return platform::game_state::TITLE;
     }
@@ -271,11 +273,11 @@ void Game::generate_grid() const {
         for (int x = 0; x < cols; ++x) {
             const auto &cell = board[y][x];
 
-            draw_rect(cell.rect, cell.bg);
+            renderer_utils->draw_rect(cell.rect, cell.bg);
 
             if (cell.is_revealed) {
                 if (cell.is_mine) {
-                    draw_rounded_rect(cell.rect, 20.0f, {0, 0, 0, 255});
+                    renderer_utils->draw_rounded_rect(cell.rect, 20.0f, {0, 0, 0, 255});
                 } else {
                     if (cell.mines_around > 0) {
                         const uint8_t radiant = cell.mines_around * 30;
@@ -295,15 +297,16 @@ void Game::generate_grid() const {
 
                         std::string txt = std::to_string(cell.mines_around);
 
-                        draw_txt(txt_pos,
-                                 draw_color,
-                                 txt.c_str());
+                        renderer_utils->draw_txt(txt_pos,
+                                                 draw_color,
+                                                 txt.c_str());
                     }
                 }
             }
 
             if (cell.is_flagged) {
-                draw_circle({cell.rect.x + cell.rect.w / 2, cell.rect.y + cell.rect.h / 2, 10}, {255, 0, 0, 255});
+                renderer_utils->draw_circle({cell.rect.x + cell.rect.w / 2, cell.rect.y + cell.rect.h / 2, 10},
+                                            {255, 0, 0, 255});
             }
         }
     }
@@ -426,140 +429,6 @@ bool Game::in_bounds(const int x, const int y) const {
 }
 
 // Render
-void Game::draw_rect(const SDL_FRect rect, const SDL_Color color) const {
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    SDL_RenderFillRectF(renderer, &rect);
-}
-
-void Game::draw_txt(const SDL_Rect pos, const SDL_Color color, const char *txt) const {
-    SDL_Surface *surface_msg = TTF_RenderText_Solid(font, txt, color);
-    SDL_Texture *text_texture = SDL_CreateTextureFromSurface(renderer, surface_msg);
-    SDL_RenderCopy(renderer, text_texture, nullptr, &pos);
-
-    SDL_FreeSurface(surface_msg);
-    SDL_DestroyTexture(text_texture);
-}
-
-void Game::draw_circle(const circle_t circle, const SDL_Color color) const {
-    float x = circle.r - 1;
-    float y = 0;
-
-    float t_x = 1;
-    float t_y = 1;
-
-    float err = (t_x - (circle.r * 2));
-
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-    while (x > y) {
-        SDL_RenderDrawPointF(renderer, circle.center_x + x, circle.center_y - y);
-        SDL_RenderDrawPointF(renderer, circle.center_x + x, circle.center_y + y);
-        SDL_RenderDrawPointF(renderer, circle.center_x - x, circle.center_y - y);
-        SDL_RenderDrawPointF(renderer, circle.center_x - x, circle.center_y + y);
-
-        SDL_RenderDrawPointF(renderer, circle.center_x + y, circle.center_y - x);
-        SDL_RenderDrawPointF(renderer, circle.center_x + y, circle.center_y + x);
-        SDL_RenderDrawPointF(renderer, circle.center_x - y, circle.center_y - x);
-        SDL_RenderDrawPointF(renderer, circle.center_x - y, circle.center_y + x);
-
-        if (err <= 0) {
-            y++;
-            err += t_y;
-            t_y += 2;
-        }
-
-        if (err > 0) {
-            x--;
-            err += (t_x - (circle.r * 2));
-            t_x += 2;
-        }
-    }
-}
-
-void Game::draw_filled_circle(const circle_t circle, const SDL_Color color) const {
-    float x = circle.r - 1;
-    float y = 0;
-
-    float t_x = 1;
-    float t_y = 1;
-
-    float err = (t_x - (circle.r * 2));
-
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-
-    const float center_x = circle.center_x;
-    const float center_y = circle.center_y;
-
-    while (x >= y) {
-        SDL_RenderDrawLineF(renderer, center_x - x, center_y + y, center_x + x, center_y + y);
-        SDL_RenderDrawLineF(renderer, center_x - x, center_y - y, center_x + x, center_y - y);
-        SDL_RenderDrawLineF(renderer, center_x - y, center_y + x, center_x + y, center_y + x);
-        SDL_RenderDrawLineF(renderer, center_x - y, center_y - x, center_x + y, center_y - x);
-
-        if (err <= 0) {
-            y++;
-            err += t_y;
-            t_y += 2;
-        }
-
-        if (err > 0) {
-            x--;
-            err += (t_x - (circle.r * 2));
-            t_x += 2;
-        }
-    }
-}
-
-void Game::draw_rounded_rect(const SDL_FRect rect, const float r, const SDL_Color color) const {
-    if (rect.w <= 0 || rect.h <= 0) return;
-
-    const float max_r = std::min(rect.w, rect.h) * 0.5f;
-    const float rad = std::max(0.0f, std::min(r, max_r));
-
-    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-
-    const SDL_FRect center = {rect.x + rad, rect.y, rect.w - 2.0f * rad, rect.h};
-    if (center.w > 0 && center.h > 0) SDL_RenderFillRectF(renderer, &center);
-
-    const SDL_FRect left_strip = {rect.x, rect.y + rad, rad, rect.h - 2.0f * rad};
-    if (left_strip.w > 0 && left_strip.h > 0) SDL_RenderFillRectF(renderer, &left_strip);
-
-    const SDL_FRect right_strip = {rect.x + rect.w - rad, rect.y + rad, rad, rect.h - 2.0f * rad};
-    if (right_strip.w > 0 && right_strip.h > 0) SDL_RenderFillRectF(renderer, &right_strip);
-
-    if (rad <= 0.0f) { return; } {
-        const SDL_Rect clip = {
-            static_cast<int>(rect.x), static_cast<int>(rect.y), static_cast<int>(rad), static_cast<int>(rad)
-        };
-        SDL_RenderSetClipRect(renderer, &clip);
-        draw_filled_circle({rect.x + rad, rect.y + rad, rad}, color);
-        SDL_RenderSetClipRect(renderer, nullptr);
-    } {
-        const SDL_Rect clip = {
-            static_cast<int>(rect.x + rect.w - rad), static_cast<int>(rect.y), static_cast<int>(rad),
-            static_cast<int>(rad)
-        };
-        SDL_RenderSetClipRect(renderer, &clip);
-        draw_filled_circle({rect.x + rect.w - rad, rect.y + rad, rad}, color);
-        SDL_RenderSetClipRect(renderer, nullptr);
-    } {
-        const SDL_Rect clip = {
-            static_cast<int>(rect.x), static_cast<int>(rect.y + rect.h - rad), static_cast<int>(rad),
-            static_cast<int>(rad)
-        };
-        SDL_RenderSetClipRect(renderer, &clip);
-        draw_filled_circle({rect.x + rad, rect.y + rect.h - rad, rad}, color);
-        SDL_RenderSetClipRect(renderer, nullptr);
-    } {
-        const SDL_Rect clip = {
-            static_cast<int>(rect.x + rect.w - rad), static_cast<int>(rect.y + rect.h - rad), static_cast<int>(rad),
-            static_cast<int>(rad)
-        };
-        SDL_RenderSetClipRect(renderer, &clip);
-        draw_filled_circle({rect.x + rect.w - rad, rect.y + rect.h - rad, rad}, color);
-        SDL_RenderSetClipRect(renderer, nullptr);
-    }
-}
-
 void Game::set_bg_color(const SDL_Color color) const {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 }

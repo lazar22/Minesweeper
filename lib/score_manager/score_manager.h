@@ -6,6 +6,7 @@
 #define SCORE_MANAGER_H
 
 #include <SDL2/SDL.h>
+#include <SDL_ttf.h>
 #include <fstream>
 #include <string>
 #include <list>
@@ -54,7 +55,11 @@ public:
     ~ScoreManager() = default;
 
 public:
-    void save_score(float time);
+    // Opens a small always-on-top window to enter player's name and view leaderboard.
+    // Returns the entered name or empty string if canceled/closed.
+    std::string open_score_window(TTF_Font *font);
+
+    void save_score(const std::string &name, float time);
 
     std::vector<score_t> load_scores();
 
