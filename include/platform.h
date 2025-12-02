@@ -93,8 +93,9 @@ namespace platform {
     }
 
     namespace file {
-        constexpr char *FILE_NAME{"score"};
-        constexpr char *FILE_TYPE{".json"};
+        constexpr char *NAME{"score"};
+        constexpr char *TYPE{".json"};
+        constexpr int MAX_SCORES_SAVED{10};
     }
 }
 

@@ -8,11 +8,20 @@
 #include <SDL2/SDL.h>
 #include <fstream>
 #include <string>
+#include <list>
 
 #include <platform.h>
+#include <vector>
+
+struct score_t {
+    std::string name;
+    float time;
+};
 
 class ScoreManager {
     std::string score_file_dir;
+
+    std::list<score_t> score_list;
 
 public:
     explicit ScoreManager(const std::string _score_file_dir) {
@@ -22,11 +31,11 @@ public:
             return;
         }
 
-        score_file_dir = path + _score_file_dir + platform::file::FILE_TYPE;
+        score_file_dir = path + _score_file_dir + platform::file::TYPE;
         SDL_free(path);
 
         auto file = std::fstream(score_file_dir, std::ios::in | std::ios::out);
-        if (file.is_open()) {
+        if (!file.is_open()) {
             std::ofstream create(score_file_dir);
 
             if (!create) {
@@ -36,17 +45,20 @@ public:
             }
         } else {
             SDL_Log("Using the existing score file.");
+            SDL_Log("Path: %s", score_file_dir.c_str());
         }
+
+        load_scores();
     };
 
     ~ScoreManager() = default;
 
 public:
-    void save_score(const float score) const;
+    void save_score(float time);
 
-    [[nodiscard]] float *load_scores() const;
+    std::vector<score_t> load_scores();
 
-    void check_score(const float score) const;
+    bool is_for_the_list(float time);
 };
 
 #endif //SCORE_MANAGER_H

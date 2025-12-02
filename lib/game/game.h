@@ -34,6 +34,7 @@ typedef struct BLOCK_STATS {
 class Game {
     SDL_Renderer *renderer;
     TTF_Font *font;
+    ScoreManager *score_manager;
     platform::input::input_t input;
 
     typedef struct MOUSE_POS {
@@ -44,7 +45,7 @@ class Game {
 public:
     Game(SDL_Renderer *_renderer, const platform::input::input_t _input, TTF_Font *_font)
         : renderer{_renderer}, font{_font}, input{_input} {
-        ScoreManager score_manager{platform::file::FILE_NAME};
+        score_manager = new ScoreManager{platform::file::NAME};
     };
 
     ~Game() = default;

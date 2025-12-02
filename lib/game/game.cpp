@@ -132,6 +132,9 @@ platform::game_state::MENU_ACTION Game::game_loop(const mouse_pos pos, SDL_Windo
     if (check_win()) {
         // TODO: check if the time is in the best of 10, and if it is return to the platform::game_state::SCORE
         SDL_Log("You won the game!");
+        if (score_manager->is_for_the_list(elapsed_time)) {
+            score_manager->save_score(elapsed_time);
+        }
         return platform::game_state::TITLE;
     }
 
