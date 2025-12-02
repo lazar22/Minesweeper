@@ -49,9 +49,9 @@ public:
 
 public
 :
-    [[nodiscard]] platform::game_state::MENU_ACTION start_menu(const mouse_pos pos) const;
+    [[nodiscard]] platform::game_state::MENU_ACTION start_menu(SDL_Window *window, mouse_pos pos) const;
 
-    [[nodiscard]] platform::game_state::MENU_ACTION game_loop(const mouse_pos pos, SDL_Window *window,
+    [[nodiscard]] platform::game_state::MENU_ACTION game_loop(mouse_pos pos, SDL_Window *window,
                                                               double elapsed_time,
                                                               platform::game::board::board_settings_t board_size);
 

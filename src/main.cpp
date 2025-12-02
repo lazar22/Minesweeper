@@ -87,8 +87,6 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        // platform::game_state::MENU_ACTION action{platform::game_state::TITLE};
-
         Game game{renderer, input, font};
         game.set_bg_color(platform::window::COLOR);
 
@@ -96,10 +94,11 @@ int main(int argc, char *argv[]) {
 
         // Title Screen
         if (current_state == platform::game_state::TITLE) {
-            switch (game.start_menu({mouse_x, mouse_y})) {
+            switch (game.start_menu(window, {mouse_x, mouse_y})) {
                 case platform::game_state::PLAYING: {
                     current_state = platform::game_state::PLAYING;
                     SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
+                    start_timer = SDL_GetTicks();
                     break;
                 }
                 case platform::game_state::QUIT: {

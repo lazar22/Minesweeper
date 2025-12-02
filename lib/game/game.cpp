@@ -29,7 +29,7 @@ static bool ignore_left_click_until_release{false};
 static bool init_generation{false};
 static bool is_gen{false};
 
-platform::game_state::MENU_ACTION Game::start_menu(const mouse_pos pos) const {
+platform::game_state::MENU_ACTION Game::start_menu(SDL_Window *window, const mouse_pos pos) const {
     constexpr int btn_h = {100};
     constexpr int btn_w = {200};
     constexpr int btn_offset = {20};
@@ -44,6 +44,8 @@ platform::game_state::MENU_ACTION Game::start_menu(const mouse_pos pos) const {
 
     draw_rounded_rect(start_btn, border_r, current_start_color);
     draw_rounded_rect(quit_btn, border_r, current_quit_color);
+
+    SDL_SetWindowTitle(window, platform::window::TITLE);
 
     draw_txt({
                  static_cast<int>(start_btn.x), static_cast<int>(start_btn.y),
