@@ -6,10 +6,11 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(SDL2TTF REQUIRED SDL2_ttf)
 
 add_executable(minesweeper
-        src/main.cpp
-        lib/game/game.cpp
-        lib/score_manager/score_manager.cpp
-        lib/renderer/renderer.cpp
+        ${CMAKE_SOURCE_DIR}/src/main.cpp
+        ${CMAKE_SOURCE_DIR}/lib/game/game.cpp
+        ${CMAKE_SOURCE_DIR}/lib/score_manager/score_manager.cpp
+        ${CMAKE_SOURCE_DIR}/lib/renderer/renderer.cpp
+        ${CMAKE_SOURCE_DIR}/lib/window/window.cpp
 )
 
 target_include_directories(minesweeper PRIVATE
@@ -19,6 +20,7 @@ target_include_directories(minesweeper PRIVATE
         ${CMAKE_SOURCE_DIR}/lib/game
         ${CMAKE_SOURCE_DIR}/lib/score_manager
         ${CMAKE_SOURCE_DIR}/lib/renderer
+        ${CMAKE_SOURCE_DIR}/lib/window
 )
 
 target_link_libraries(minesweeper PRIVATE

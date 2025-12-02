@@ -6,49 +6,25 @@
 
 #include <platform.h>
 #include "game.h"
+#include "window.h"
 
 static platform::input::input_t input;
 
 static int mouse_x, mouse_y;
-static SDL_DisplayMode window_size;
 
 static uint8_t current_state = platform::game_state::TITLE;
 
 int main(int argc, char *argv[]) {
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    if (TTF_Init()) {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF: %s", TTF_GetError());
-    }
-
-    SDL_GetCurrentDisplayMode(0, &window_size);
-
-    const int window_x = (window_size.w - platform::window::WIDTH) / 2;
-    const int window_y = (window_size.h - platform::window::HEIGHT) / 2;
-
-
-    SDL_Window *window = SDL_CreateWindow(platform::window::TITLE,
-                                          window_x, window_y,
-                                          platform::window::WIDTH, platform::window::HEIGHT,
-                                          SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-
-    const char *fontPath = "assets/font/04b_25__.ttf";
-    TTF_Font *font = TTF_OpenFont(fontPath, platform::font::TITLE_SIZE);
-    if (!font) {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_OpenFont('%s') failed: %s", fontPath, TTF_GetError());
-        SDL_Log("BasePath: %s", SDL_GetBasePath() ? : "(null)");
-        return 1;
-    }
-
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    SDL_GL_SetSwapInterval(1);
-
     SDL_Event event;
 
     bool is_running = true;
 
+    Window main_window{platform::window::WIDTH, platform::window::HEIGHT, platform::window::TITLE};
+
     uint32_t start_timer = SDL_GetTicks();
-    Game game{renderer, input, font};
+    Game game{main_window.get_renderer(), input, main_window.get_font()};
 
     while (is_running) {
         for (int i = 0; i < platform::input::BUTTON_COUNT; i++) {
@@ -92,11 +68,11 @@ int main(int argc, char *argv[]) {
         game.update_input(input);
         game.set_bg_color(platform::window::COLOR);
 
-        SDL_RenderClear(renderer);
+        SDL_RenderClear(main_window.get_renderer());
 
         // Title Screen
         if (current_state == platform::game_state::TITLE) {
-            switch (game.start_menu(window, {mouse_x, mouse_y})) {
+            switch (game.start_menu(main_window.get_window(), {mouse_x, mouse_y})) {
                 case platform::game_state::PLAYING: {
                     current_state = platform::game_state::PLAYING;
                     SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
@@ -119,7 +95,7 @@ int main(int argc, char *argv[]) {
             const uint32_t current_time = SDL_GetTicks();
             const double elapsed_time = (current_time - start_timer) / 1000.0; // decided by 1000 to get seconds
 
-            switch (game.game_loop({mouse_x, mouse_y}, window, elapsed_time, {8, 8, 10})) {
+            switch (game.game_loop({mouse_x, mouse_y}, main_window.get_window(), elapsed_time, {8, 8, 10})) {
                 case platform::game_state::PLAYING: {
                     break;
                 }
@@ -136,15 +112,8 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        SDL_RenderPresent(renderer);
+        SDL_RenderPresent(main_window.get_renderer());
     }
-
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    TTF_CloseFont(font);
-
-    TTF_Quit();
-    SDL_Quit();
 
     return 0;
 }
