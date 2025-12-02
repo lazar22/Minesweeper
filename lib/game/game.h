@@ -10,6 +10,7 @@
 #include <SDL_ttf.h>
 
 #include <platform.h>
+#include <score_manager.h>
 
 #define IS_DOWN(button) input.buttons[button].is_down
 #define IS_PRESSED(button) (input.buttons[button].is_down && input.buttons[button].changed)
@@ -43,6 +44,7 @@ class Game {
 public:
     Game(SDL_Renderer *_renderer, const platform::input::input_t _input, TTF_Font *_font)
         : renderer{_renderer}, font{_font}, input{_input} {
+        ScoreManager score_manager{platform::file::FILE_NAME};
     };
 
     ~Game() = default;
@@ -54,6 +56,10 @@ public
     [[nodiscard]] platform::game_state::MENU_ACTION game_loop(mouse_pos pos, SDL_Window *window,
                                                               double elapsed_time,
                                                               platform::game::board::board_settings_t board_size);
+
+    void update_input(const platform::input::input_t _input) {
+        input = _input;
+    }
 
     void set_bg_color(SDL_Color color) const;
 

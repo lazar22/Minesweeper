@@ -344,7 +344,6 @@ bool Game::grid_mouse_action(const mouse_pos pos) const {
                     cell.is_flagged = !cell.is_flagged;
                 }
             } else {
-                ;
             }
         }
     }

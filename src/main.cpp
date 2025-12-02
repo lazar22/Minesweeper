@@ -48,6 +48,8 @@ int main(int argc, char *argv[]) {
     bool is_running = true;
 
     uint32_t start_timer = SDL_GetTicks();
+    Game game{renderer, input, font};
+
     while (is_running) {
         for (int i = 0; i < platform::input::BUTTON_COUNT; i++) {
             input.buttons[i].changed = false;
@@ -87,7 +89,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        Game game{renderer, input, font};
+        game.update_input(input);
         game.set_bg_color(platform::window::COLOR);
 
         SDL_RenderClear(renderer);

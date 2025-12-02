@@ -20,6 +20,10 @@ namespace platform {
         static constexpr SDL_Color COLOR{34, 12, 16, 255};
     }
 
+    namespace organization {
+        const char *const NAME{"Blue Dragon"};
+    }
+
     namespace game_state {
         enum MENU_ACTION {
             TITLE,
@@ -86,6 +90,11 @@ namespace platform {
             constexpr SDL_Color BG{205, 211, 213, 255};
             constexpr SDL_Color BG_HOVER{80, 108, 100, 255};
         }
+    }
+
+    namespace file {
+        constexpr char *FILE_NAME{"score"};
+        constexpr char *FILE_TYPE{".json"};
     }
 }
 
