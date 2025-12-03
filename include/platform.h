@@ -10,8 +10,10 @@ input.buttons[button].changed = is_down != input.buttons[button].is_down;\
 input.buttons[button].is_down = is_down;\
 } break;
 
-namespace platform {
-    namespace window {
+namespace platform
+{
+    namespace window
+    {
         static auto TITLE{"Minesweeper"};
 
         static constexpr int WIDTH{750};
@@ -19,7 +21,8 @@ namespace platform {
 
         static constexpr SDL_Color COLOR{34, 12, 16, 255};
 
-        namespace score {
+        namespace score
+        {
             static auto TITLE{"Score Board"};
 
             constexpr int WIDTH{520};
@@ -27,12 +30,15 @@ namespace platform {
         }
     }
 
-    namespace organization {
-        const char *const NAME{"Blue Dragon"};
+    namespace organization
+    {
+        const char* const NAME{"Blue Dragon"};
     }
 
-    namespace game_state {
-        enum MENU_ACTION {
+    namespace game_state
+    {
+        enum MENU_ACTION
+        {
             TITLE,
             QUIT,
             PLAYING,
@@ -41,17 +47,22 @@ namespace platform {
         };
     }
 
-    namespace game {
-        namespace board {
-            typedef struct BOARD_SETTINGS {
+    namespace game
+    {
+        namespace board
+        {
+            typedef struct BOARD_SETTINGS
+            {
                 uint8_t w;
                 uint8_t h;
                 uint8_t mines;
             } board_settings_t;
         }
 
-        namespace block {
-            namespace color {
+        namespace block
+        {
+            namespace color
+            {
                 constexpr SDL_Color BG{148, 148, 148, 255};
                 constexpr SDL_Color REVELED_BG{205, 211, 213, 255};
                 constexpr SDL_Color LOST_BG{196, 41, 41, 255};
@@ -62,13 +73,16 @@ namespace platform {
         }
     }
 
-    namespace input {
-        typedef struct BUTTON_STATE {
+    namespace input
+    {
+        typedef struct BUTTON_STATE
+        {
             bool is_down;
             bool changed;
         } button_state_t;
 
-        enum BUTTONS {
+        enum BUTTONS
+        {
             UP,
             DOWN,
 
@@ -83,25 +97,29 @@ namespace platform {
             BUTTON_COUNT,
         };
 
-        typedef struct INPUT {
+        typedef struct INPUT
+        {
             button_state_t buttons[BUTTON_COUNT];
         } input_t;
     }
 
-    namespace font {
+    namespace font
+    {
         constexpr int TITLE_SIZE{120};
         constexpr int SUB_TITLE_SIZE{90};
 
-        namespace color {
+        namespace color
+        {
             constexpr SDL_Color MAIN{119, 203, 185, 255};
             constexpr SDL_Color BG{205, 211, 213, 255};
             constexpr SDL_Color BG_HOVER{80, 108, 100, 255};
         }
     }
 
-    namespace file {
-        constexpr char *NAME{"score"};
-        constexpr char *TYPE{".json"};
+    namespace file
+    {
+        constexpr auto NAME{"score"};
+        constexpr auto TYPE{".json"};
         constexpr int MAX_SCORES_SAVED{10};
     }
 }
