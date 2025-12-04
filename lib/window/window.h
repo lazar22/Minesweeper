@@ -31,7 +31,7 @@ class Window
     uint32_t start_timer{SDL_GetTicks()};
 
 public:
-    Window(int width, int height, const char* title);
+    Window(const int width, const int height, const char* font_path, const char* title);
 
     ~Window();
 

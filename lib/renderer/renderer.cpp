@@ -4,6 +4,7 @@
 
 #include "renderer.h"
 #include <algorithm>
+#include <SDL_ttf.h>
 
 void Renderer::draw_rect(const SDL_FRect rect, const SDL_Color color) const
 {
@@ -13,9 +14,61 @@ void Renderer::draw_rect(const SDL_FRect rect, const SDL_Color color) const
 
 void Renderer::draw_txt(const SDL_Rect pos, const SDL_Color color, const char* txt) const
 {
+    if (!txt) return;
+
     SDL_Surface* surface_msg = TTF_RenderText_Solid(font, txt, color);
+    if (!surface_msg) return;
+
     SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, surface_msg);
+    if (!text_texture)
+    {
+        SDL_FreeSurface(surface_msg);
+        return;
+    }
+
     SDL_RenderCopy(renderer, text_texture, nullptr, &pos);
+
+    SDL_FreeSurface(surface_msg);
+    SDL_DestroyTexture(text_texture);
+}
+
+void Renderer::draw_txt_centered(const SDL_Rect bounds,
+                                 const SDL_Color color,
+                                 const char* txt,
+                                 const float user_scale) const
+{
+    if (!txt) return;
+    if (bounds.w <= 0 || bounds.h <= 0) return;
+
+    SDL_Surface* surface_msg = TTF_RenderText_Solid(font, txt, color);
+    if (!surface_msg) return;
+
+    SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, surface_msg);
+    if (!text_texture)
+    {
+        SDL_FreeSurface(surface_msg);
+        return;
+    }
+
+    const int text_w = std::max(1, surface_msg->w);
+    const int text_h = std::max(1, surface_msg->h);
+
+    const float fit_scale_w = static_cast<float>(bounds.w) / static_cast<float>(text_w);
+    const float fit_scale_h = static_cast<float>(bounds.h) / static_cast<float>(text_h);
+    const float fit_scale = std::min(fit_scale_w, fit_scale_h);
+
+    const float clamped_user = (user_scale > 0.0f) ? user_scale : 1.0f;
+    float final_scale = fit_scale * clamped_user;
+
+    if (final_scale > fit_scale) final_scale = fit_scale;
+
+    SDL_Rect dst{};
+    dst.w = std::max(1, static_cast<int>(text_w * final_scale));
+    dst.h = std::max(1, static_cast<int>(text_h * final_scale));
+    dst.x = bounds.x + (bounds.w - dst.w) / 2;
+    dst.y = bounds.y + (bounds.h - dst.h) / 2;
+
+    SDL_RenderCopy(renderer, text_texture, nullptr, &dst);
 
     SDL_FreeSurface(surface_msg);
     SDL_DestroyTexture(text_texture);

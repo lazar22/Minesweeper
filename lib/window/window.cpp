@@ -6,10 +6,9 @@
 #include "platform.h"
 #include "game.h"
 
-// Use the same input object defined in main.cpp
 extern platform::input::input_t input;
 
-Window::Window(const int width, const int height, const char* title)
+Window::Window(const int width, const int height, const char* font_path, const char* title)
 {
     if (TTF_Init())
     {
@@ -27,7 +26,7 @@ Window::Window(const int width, const int height, const char* title)
                               width, height,
                               SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
-    const auto fontPath = "assets/font/04b_25__.ttf";
+    const auto fontPath = font_path;
     font = TTF_OpenFont(fontPath, platform::font::TITLE_SIZE);
     if (!font)
     {
@@ -104,7 +103,6 @@ void Window::main_loop(const std::vector<func_t>& functions)
     {
         register_events();
 
-        // TODO: Add pick board size screen
         for (const auto& func : functions)
         {
             func();

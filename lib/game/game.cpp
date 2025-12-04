@@ -48,19 +48,24 @@ platform::game_state::MENU_ACTION Game::start_menu(SDL_Window* window, const mou
 
     SDL_SetWindowTitle(window, platform::window::TITLE);
 
-    renderer_utils->draw_txt({
-                                 static_cast<int>(start_btn.x), static_cast<int>(start_btn.y),
-                                 static_cast<int>(start_btn.w), static_cast<int>(start_btn.h)
-                             },
-                             platform::font::color::MAIN,
-                             "Start");
+    static constexpr int font_offset = 30;
+    renderer_utils->draw_txt_centered({
+                                          static_cast<int>(start_btn.x) + (font_offset / 2),
+                                          static_cast<int>(start_btn.y) + (font_offset / 2),
+                                          static_cast<int>(start_btn.w) - font_offset,
+                                          static_cast<int>(start_btn.h) - font_offset
+                                      },
+                                      platform::font::color::MAIN,
+                                      "Start", 1);
 
-    renderer_utils->draw_txt({
-                                 static_cast<int>(quit_btn.x), static_cast<int>(quit_btn.y),
-                                 static_cast<int>(quit_btn.w), static_cast<int>(quit_btn.h)
-                             },
-                             platform::font::color::MAIN,
-                             "Quit");
+    renderer_utils->draw_txt_centered({
+                                          static_cast<int>(quit_btn.x) + (font_offset / 2),
+                                          static_cast<int>(quit_btn.y) + (font_offset / 2),
+                                          static_cast<int>(quit_btn.w) - font_offset,
+                                          static_cast<int>(quit_btn.h) - font_offset
+                                      },
+                                      platform::font::color::MAIN,
+                                      "Quit", 1);
 
     const bool is_start_hover = check_hover(start_btn, pos);
     const bool is_quit_hover = check_hover(quit_btn, pos);
@@ -256,7 +261,6 @@ void Game::board_init(const platform::game::board::board_settings_t board_size) 
     is_gen = false;
 }
 
-
 void Game::generate_tiles(const int safe_x, const int safe_y) const
 {
     const int rows = static_cast<int>(board.size());
@@ -303,7 +307,6 @@ void Game::generate_tiles(const int safe_x, const int safe_y) const
     }
 }
 
-
 void Game::generate_grid() const
 {
     const int rows = static_cast<int>(board.size());
@@ -335,18 +338,18 @@ void Game::generate_grid() const
                             255
                         };
 
-                        const SDL_Rect txt_pos = {
-                            static_cast<int>(cell.rect.x + cell.rect.w / 2 - 5),
-                            static_cast<int>(cell.rect.y + cell.rect.h / 2 - 7),
-                            static_cast<int>(cell.rect.w / 2),
-                            static_cast<int>(cell.rect.h / 2)
-                        };
-
                         std::string txt = std::to_string(cell.mines_around);
 
-                        renderer_utils->draw_txt(txt_pos,
-                                                 draw_color,
-                                                 txt.c_str());
+                        constexpr int txt_padding = 8;
+                        constexpr float GRID_NUMBER_SCALE = 0.85f;
+                        const SDL_Rect bounds = {
+                            static_cast<int>(cell.rect.x) + txt_padding,
+                            static_cast<int>(cell.rect.y) + txt_padding,
+                            static_cast<int>(cell.rect.w) - 2 * txt_padding,
+                            static_cast<int>(cell.rect.h) - 2 * txt_padding
+                        };
+
+                        renderer_utils->draw_txt_centered(bounds, draw_color, txt.c_str(), GRID_NUMBER_SCALE);
                     }
                 }
             }
@@ -416,7 +419,6 @@ bool Game::grid_mouse_action(const mouse_pos pos) const
 
     return false;
 }
-
 
 void Game::loop_around_tile(const int pos_x, const int pos_y) const
 {

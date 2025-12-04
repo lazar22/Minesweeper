@@ -108,6 +108,8 @@ namespace platform
         constexpr int TITLE_SIZE{120};
         constexpr int SUB_TITLE_SIZE{90};
 
+        constexpr auto PATH{"assets/font/ARIAL.TTF"};
+
         namespace color
         {
             constexpr SDL_Color MAIN{119, 203, 185, 255};

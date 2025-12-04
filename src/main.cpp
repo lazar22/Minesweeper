@@ -80,7 +80,10 @@ int main(int argc, char* argv[])
 {
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    main_window = new Window{platform::window::WIDTH, platform::window::HEIGHT, platform::window::TITLE};
+    main_window = new Window{
+        platform::window::WIDTH, platform::window::HEIGHT,
+        platform::font::PATH, platform::window::TITLE
+    };
 
     if (main_window->get_window() == nullptr ||
         main_window->get_renderer() == nullptr ||
@@ -98,6 +101,7 @@ int main(int argc, char* argv[])
         std::exit(EXIT_FAILURE);
     }
 
+    // TODO: Add pick board size screen
     const std::vector<func_t> functions = {
         update_input,
         render_title_screen,
